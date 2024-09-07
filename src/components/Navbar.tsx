@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
-import { Clock } from 'lucide-react'
+import { Clock, User, X, Menu } from 'lucide-react'
 import { useAuth } from '@/AuthContext'
 import { logoutUser } from '@/lib/auth'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 
 const navItems = [
   { name: 'Home', href: '/' },
@@ -32,7 +34,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -59,8 +61,14 @@ export default function Navbar() {
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {user ? (
               <>
-                <span className="mr-4 text-gray-900">Welcome, {user.displayName}</span>
-                <Button onClick={handleLogout} variant="outline" className="mr-4 bg-gray-100">
+                <Badge variant="secondary" className="mr-4 py-1 px-3 flex items-center">
+                  <Avatar className="h-6 w-6 mr-2">
+                    <AvatarImage src={user.photoURL || `https://api.dicebear.com/6.x/initials/svg?seed=${user.displayName}`} />
+                    <AvatarFallback>{user.displayName ? user.displayName[0] : 'U'}</AvatarFallback>
+                  </Avatar>
+                  <span>{user.displayName}</span>
+                </Badge>
+                <Button onClick={handleLogout} variant="outline" className="bg-gray-100">
                   Logout
                 </Button>
               </>
@@ -82,62 +90,78 @@ export default function Navbar() {
             >
               <span className="sr-only">Open main menu</span>
               {isOpen ? (
-                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="block h-6 w-6" aria-hidden="true" />
               ) : (
-                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <Menu className="block h-6 w-6" aria-hidden="true" />
               )}
             </button>
           </div>
         </div>
       </div>
 
-      <motion.div 
-        className={`sm:hidden ${isOpen ? 'block' : 'hidden'}`}
-        initial={false}
-        animate={isOpen ? { height: 'auto' } : { height: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="pt-2 pb-3 space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-                pathname === item.href
-                  ? 'bg-blue-50 border-blue-500 text-blue-700'
-                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </div>
-        <div className="pt-4 pb-3 border-t border-gray-200">
-          <div className="flex items-center px-4">
-            {user ? (
-              <>
-                <span className="mr-4 text-gray-900">Welcome, {user.displayName}</span>
-                <Button onClick={handleLogout} variant="ghost" className="mr-4 w-full justify-center">
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button asChild variant="ghost" className="mr-4 w-full justify-center">
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button asChild className="w-full justify-center">
-                  <Link href="/register">Sign Up</Link>
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </motion.div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            className="sm:hidden fixed inset-0 z-40 bg-white"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="flex justify-end p-4">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="pt-2 pb-3 space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                    pathname === item.href
+                      ? 'bg-blue-50 border-blue-500 text-blue-700'
+                      : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+            <div className="pt-4 pb-3 border-t border-gray-200">
+              <div className="flex flex-col items-center px-4 space-y-3">
+                {user ? (
+                  <>
+                    <div className="flex items-center w-full">
+                      <Avatar className="mr-3">
+                        <AvatarImage src={user.photoURL || `https://api.dicebear.com/6.x/initials/svg?seed=${user.displayName}`} />
+                        <AvatarFallback>{user.displayName ? user.displayName[0] : 'U'}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-gray-900 truncate flex-1">Welcome, {user.displayName}</span>
+                    </div>
+                    <Button onClick={() => { handleLogout(); setIsOpen(false); }} variant="outline" className="w-full justify-center bg-gray-100">
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild variant="outline" className="w-full justify-center bg-gray-100" onClick={() => setIsOpen(false)}>
+                      <Link href="/login">Login</Link>
+                    </Button>
+                    <Button asChild className="w-full justify-center" onClick={() => setIsOpen(false)}>
+                      <Link href="/register">Sign Up</Link>
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   )
 }
