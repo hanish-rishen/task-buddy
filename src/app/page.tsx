@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from "@/components/ui/button"
@@ -11,11 +11,18 @@ import Marquee from '@/components/magicui/marquee'
 import { BentoGrid, BentoCard } from '@/components/magicui/bento-grid'
 import AnimatedGradientText from '@/components/magicui/animated-gradient-text'
 import ShinyButton from '@/components/magicui/shiny-button'
-import  AnimatedGridPattern  from '@/components/magicui/animated-grid-pattern'
+import AnimatedGridPattern from '@/components/magicui/animated-grid-pattern'
 import Image from 'next/image'
+import { AnimatedList } from '@/components/magicui/animated-list'
+import { AnimatedBeam } from '@/components/magicui/animated-beam'
+import { Calendar } from "@/components/ui/calendar"
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const fromRef = useRef<HTMLDivElement>(null);
+  const fromRef2 = useRef<HTMLDivElement>(null);
+  const toRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true)
@@ -32,12 +39,10 @@ export default function Home() {
       cta: "Learn more",
       className: "col-span-3 lg:col-span-1",
       background: (
-        <Image
-          src="https://images.unsplash.com/photo-1501139083538-0139583c060f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
-          alt="Time is Currency"
-          layout="fill"
-          objectFit="cover"
-          className="opacity-20"
+        <Calendar
+          mode="single"
+          selected={new Date()}
+          className="absolute right-0 top-20 sm:top-10 origin-top rounded-md border transition-all duration-300 ease-out [mask-image:linear-gradient(to_top,transparent_40%,#000_100%)] group-hover:scale-105 block"
         />
       ),
     },
@@ -49,13 +54,7 @@ export default function Home() {
       cta: "Learn more",
       className: "col-span-3 lg:col-span-2",
       background: (
-        <Image
-          src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
-          alt="Build Connections"
-          layout="fill"
-          objectFit="cover"
-          className="opacity-20"
-        />
+        <AnimatedList className="absolute right-2 top-8 sm:top-4 h-[300px] w-full border-none transition-all duration-300 ease-out [mask-image:linear-gradient(to_top,transparent_10%,#000_100%)] group-hover:scale-105 block" />
       ),
     },
     {
@@ -64,15 +63,37 @@ export default function Home() {
       description: "Find help for any task, big or small",
       href: "#",
       cta: "Learn more",
-      className: "col-span-3",
+      className: "col-span-3 pb-8 sm:pb-0",
       background: (
-        <Image
-          src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
-          alt="Diverse Skills"
-          layout="fill"
-          objectFit="cover"
-          className="opacity-20"
-        />
+        <div ref={containerRef} className="absolute right-0 top-[-40px] sm:top-[-20px] w-full h-full block">
+          <div ref={fromRef} className="absolute left-1/4 top-1/4 sm:left-1/3 sm:top-1/4 w-12 h-12 flex items-center justify-center bg-blue-100 rounded-full">
+            <Users className="w-6 h-6 text-blue-500" />
+          </div>
+          <div ref={fromRef2} className="absolute left-1/4 top-1/2 sm:left-1/3 sm:top-2/3 w-12 h-12 flex items-center justify-center bg-green-100 rounded-full">
+            <Clock className="w-6 h-6 text-green-500" />
+          </div>
+          <div ref={toRef} className="absolute right-1/4 top-1/2 sm:right-1/3 sm:top-1/2 w-12 h-12 flex items-center justify-center bg-yellow-100 rounded-full">
+            <Zap className="w-6 h-6 text-yellow-500" />
+          </div>
+          <AnimatedBeam
+            containerRef={containerRef}
+            fromRef={fromRef}
+            toRef={toRef}
+            className="absolute inset-0"
+            pathColor="rgba(59, 130, 246, 0.2)"
+            gradientStartColor="#3b82f6"
+            gradientStopColor="#22c55e"
+          />
+          <AnimatedBeam
+            containerRef={containerRef}
+            fromRef={fromRef2}
+            toRef={toRef}
+            className="absolute inset-0"
+            pathColor="rgba(59, 130, 246, 0.2)"
+            gradientStartColor="#22c55e"
+            gradientStopColor="#eab308"
+          />
+        </div>
       ),
     },
   ]
@@ -122,7 +143,7 @@ export default function Home() {
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-12 text-gray-900">How It Works</h2>
-          <BentoGrid>
+          <BentoGrid className="[&>*]:!bg-opacity-90">
             {features.map((feature, idx) => (
               <BentoCard key={idx} {...feature} />
             ))}
@@ -158,7 +179,9 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.4 }}
           >
             <Input type="email" placeholder="Enter your email" className="rounded-r-none sm:rounded-r-none sm:rounded-l-lg mb-2 sm:mb-0" />
-            <ShinyButton text="Get Started" className="rounded-lg sm:rounded-l-none sm:rounded-r-lg whitespace-nowrap" />
+            <ShinyButton text="Get Started" className="rounded-lg sm:rounded-l-none sm:rounded-r-lg whitespace-nowrap">
+              Get Started
+            </ShinyButton>
           </motion.form>
         </div>
       </section>
