@@ -12,7 +12,6 @@ import { BentoGrid, BentoCard } from '@/components/magicui/bento-grid'
 import AnimatedGradientText from '@/components/magicui/animated-gradient-text'
 import ShinyButton from '@/components/magicui/shiny-button'
 import AnimatedGridPattern from '@/components/magicui/animated-grid-pattern'
-import Image from 'next/image'
 import { AnimatedList } from '@/components/magicui/animated-list'
 import { AnimatedBeam } from '@/components/magicui/animated-beam'
 import { Calendar } from "@/components/ui/calendar"
