@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
-import { Clock, User, X, Menu } from 'lucide-react'
+import { Clock, X, Menu } from 'lucide-react'
 import { useAuth } from '@/AuthContext'
 import { logoutUser } from '@/lib/auth'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -33,6 +33,14 @@ export default function Navbar() {
     }
   }
 
+  const authenticatedNavItems = [
+    { name: 'Home', href: '/' },
+    { name: 'Browse Tasks', href: '/browse-tasks' },
+    { name: 'Dashboard', href: '/dashboard' },
+  ]
+
+  const currentNavItems = user ? authenticatedNavItems : navItems
+
   return (
     <nav className="bg-white shadow-sm relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,7 +51,7 @@ export default function Navbar() {
               <span className="ml-2 text-2xl font-bold text-gray-900">TaskBuddy</span>
             </Link>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {navItems.map((item) => (
+              {currentNavItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -117,7 +125,7 @@ export default function Navbar() {
               </button>
             </div>
             <div className="pt-2 pb-3 space-y-1">
-              {navItems.map((item) => (
+              {currentNavItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
