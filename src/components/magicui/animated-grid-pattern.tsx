@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
@@ -10,7 +10,7 @@ interface GridPatternProps {
   height?: number;
   x?: number;
   y?: number;
-  strokeDasharray?: any;
+  strokeDasharray?: string | number;
   numSquares?: number;
   className?: string;
   maxOpacity?: number;
@@ -32,24 +32,24 @@ export function GridPattern({
   ...props
 }: GridPatternProps) {
   const id = useId();
-  const containerRef = useRef(null);
+  const containerRef = useRef<SVGSVGElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const [squares, setSquares] = useState(() => generateSquares(numSquares));
+  const [squares, setSquares] = useState<Array<{ id: number; pos: [number, number] }>>([]);
 
-  function getPos() {
+  const getPos = useCallback(() => {
     return [
       Math.floor((Math.random() * dimensions.width) / width),
       Math.floor((Math.random() * dimensions.height) / height),
-    ];
-  }
+    ] as [number, number];
+  }, [dimensions.width, dimensions.height, width, height]);
 
   // Adjust the generateSquares function to return objects with an id, x, and y
-  function generateSquares(count: number) {
+  const generateSquares = useCallback((count: number) => {
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       pos: getPos(),
     }));
-  }
+  }, [getPos]);
 
   // Function to update a single square's position
   const updateSquarePosition = (id: number) => {
@@ -70,30 +70,29 @@ export function GridPattern({
     if (dimensions.width && dimensions.height) {
       setSquares(generateSquares(numSquares));
     }
-  }, [dimensions, numSquares, maxOpacity, duration, generateSquares]);
+  }, [dimensions, numSquares, generateSquares]);
 
   // Resize observer to update container dimensions
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];
-      for (let entry of entries) {
-        setDimensions({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        });
-      }
+      setDimensions({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      });
     });
 
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
+    const currentRef = containerRef.current;
+    if (currentRef) {
+      resizeObserver.observe(currentRef);
     }
 
     return () => {
-      if (containerRef.current) {
-        resizeObserver.unobserve(containerRef.current);
+      if (currentRef) {
+        resizeObserver.unobserve(currentRef);
       }
     };
-  }, [containerRef]);
+  }, []);
 
   return (
     <svg
