@@ -134,7 +134,7 @@ export default function Home() {
           <h2 className="text-4xl font-bold text-center mb-12 text-gray-900">What Our Users Say</h2>
           <div className="grid md:grid-cols-2 gap-8">
             {[
-              { name: "Sarah L.", quote: "TaskBuddy has transformed the way I interact with my community. I've met amazing people and gotten so much done!", avatar: "SL" },
+              { name: "Sarah L.", quote: "TaskBuddy has transformed the way I interact with my community. I&apos;ve met amazing people and gotten so much done!", avatar: "SL" },
               { name: "Michael R.", quote: "As a busy professional, TaskBuddy has been a lifesaver. I can get help with tasks and give back when I have time.", avatar: "MR" },
             ].map((testimonial, index) => (
               <motion.div 
@@ -145,7 +145,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.2 }}
               >
-                <p className="text-gray-900 mb-4">"{testimonial.quote}"</p>
+                <p className="text-gray-900 mb-4">&quot;{testimonial.quote}&quot;</p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-4">
                     {testimonial.avatar}
