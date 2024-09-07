@@ -59,7 +59,6 @@ export default function About() {
           </CardHeader>
           <CardContent>
             <p>
-              Have questions or suggestions? We'd love to hear from you!<br />
               Email us at: <a href="mailto:contact@taskbuddy.com" className="text-blue-500 hover:underline">contact@taskbuddy.com</a><br />
               Or call us at: (123) 456-7890
             </p>

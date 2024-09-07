@@ -25,7 +25,7 @@ export default function Login() {
         <CardFooter className="flex flex-col">
           <Button className="w-full">Log In</Button>
           <p className="mt-4 text-sm text-center text-gray-500">
-            Don't have an account? <Link href="/register" className="text-blue-500 hover:underline">Sign up</Link>
+            Don&apos;t have an account? <Link href="/register" className="text-blue-500 hover:underline">Sign up</Link>
           </p>
         </CardFooter>
       </Card>

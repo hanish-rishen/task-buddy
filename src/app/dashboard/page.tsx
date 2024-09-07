@@ -16,7 +16,7 @@ type Task = {
 }
 
 export default function Dashboard() {
-  const [timeBalance, setTimeBalance] = useState(5) // Initial time balance in hours
+  const [timeBalance] = useState(5) // Initial time balance in hours
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [newTaskDescription, setNewTaskDescription] = useState('')
   const [newTaskDuration, setNewTaskDuration] = useState('')
