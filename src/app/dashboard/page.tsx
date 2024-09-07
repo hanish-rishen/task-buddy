@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Task, getTasks, createTask, updateTask, deleteTask } from '@/lib/firestore'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
@@ -13,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function Dashboard() {
-  const [timeBalance, setTimeBalance] = useState(5)
+  const [timeBalance] = useState(5)
   const [tasks, setTasks] = useState<Task[]>([])
   const [newTask, setNewTask] = useState({ title: '', description: '', duration: 0 })
   const [editingTask, setEditingTask] = useState<Task | null>(null)
@@ -160,7 +159,7 @@ export default function Dashboard() {
         </div>
       ) : tasks.length === 0 ? (
         <Card className="p-6 text-center">
-          <p className="text-gray-500">You haven't posted any tasks yet. Create a new task to get started!</p>
+          <p className="text-gray-500">You haven&apos;t posted any tasks yet. Create a new task to get started!</p>
         </Card>
       ) : (
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -268,7 +267,7 @@ export default function Dashboard() {
             <DialogTitle>Confirm Deletion</DialogTitle>
           </DialogHeader>
           <DialogDescription>
-            Are you sure you want to delete the task "{deleteConfirmTask?.title}"? This action cannot be undone.
+            Are you sure you want to delete the task &quot;{deleteConfirmTask?.title}&quot;? This action cannot be undone.
           </DialogDescription>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirmTask(null)}>Cancel</Button>
