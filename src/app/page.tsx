@@ -21,13 +21,13 @@ export default function Home() {
   if (!mounted) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50 landing-page">
       <motion.div 
-        className="h-screen flex flex-col items-center justify-center text-center px-4"
+        className="min-h-screen flex flex-col items-center justify-center text-center px-4 sm:px-6 lg:px-8"
         style={{ opacity, scale }}
       >
         <motion.h1 
-          className="text-6xl sm:text-7xl font-extrabold text-gray-900 mb-6"
+          className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 sm:mb-6"
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -35,7 +35,7 @@ export default function Home() {
           Exchange Time,<br />Build Community
         </motion.h1>
         <motion.p 
-          className="text-xl sm:text-2xl text-gray-900 mb-8 max-w-2xl"
+          className="text-lg sm:text-xl lg:text-2xl text-gray-900 mb-6 sm:mb-8 max-w-2xl"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
@@ -47,14 +47,14 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12"
+          className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4"
         >
-          <Button asChild size="lg" className="text-lg px-8 py-6 rounded-full">
+          <Button asChild size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full">
             <Link href="/register">
               Get Started <ArrowRight className="ml-2" />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="text-gray-900 text-lg px-8 py-6 rounded-full">
+          <Button asChild size="lg" variant="outline" className="text-gray-900 text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full">
             <Link href="/about">
               Learn More
             </Link>
@@ -66,7 +66,7 @@ export default function Home() {
           transition={{ duration: 1, delay: 1 }}
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
         >
-          <ChevronDown className="w-8 h-8 text-gray-900 animate-bounce" />
+          <ChevronDown className="w-6 h-6 sm:w-8 sm:h-8 text-gray-900 animate-bounce" />
         </motion.div>
       </motion.div>
 

@@ -30,7 +30,7 @@ import {
     ]
   
     return (
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto pt-20 px-4">
         <h1 className="text-3xl font-bold mb-6">Frequently Asked Questions</h1>
         <Accordion type="single" collapsible className="w-full">
           {faqs.map((faq, index) => (

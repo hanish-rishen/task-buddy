@@ -10,7 +10,6 @@ import { Clock } from 'lucide-react'
 const navItems = [
   { name: 'Home', href: '/' },
   { name: 'Browse Tasks', href: '/browse-tasks' },
-  { name: 'Create Task', href: '/create-task' },
   { name: 'About', href: '/about' },
   { name: 'FAQ', href: '/faq' },
 ]
