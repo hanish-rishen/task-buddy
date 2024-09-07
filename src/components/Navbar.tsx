@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import { Clock } from 'lucide-react'
+import { useAuth } from '@/AuthContext'
+import { logoutUser } from '@/lib/auth'
 
 const navItems = [
   { name: 'Home', href: '/' },
@@ -17,6 +19,17 @@ const navItems = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const { user } = useAuth()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser()
+      router.push('/')
+    } catch (error) {
+      console.error('Error logging out:', error)
+    }
+  }
 
   return (
     <nav className="bg-white shadow-sm">
@@ -44,12 +57,23 @@ export default function Navbar() {
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <Button asChild variant="outline" className="mr-4 bg-gray-100">
-              <Link className="text-gray-900" href="/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/register">Sign Up</Link>
-            </Button>
+            {user ? (
+              <>
+                <span className="mr-4 text-gray-900">Welcome, {user.displayName}</span>
+                <Button onClick={handleLogout} variant="outline" className="mr-4 bg-gray-100">
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild variant="outline" className="mr-4 bg-gray-100">
+                  <Link className="text-gray-900" href="/login">Login</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/register">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </div>
           <div className="-mr-2 flex items-center sm:hidden">
             <button
@@ -94,12 +118,23 @@ export default function Navbar() {
         </div>
         <div className="pt-4 pb-3 border-t border-gray-200">
           <div className="flex items-center px-4">
-            <Button asChild variant="ghost" className="mr-4 w-full justify-center">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild className="w-full justify-center">
-              <Link href="/register">Sign Up</Link>
-            </Button>
+            {user ? (
+              <>
+                <span className="mr-4 text-gray-900">Welcome, {user.displayName}</span>
+                <Button onClick={handleLogout} variant="ghost" className="mr-4 w-full justify-center">
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild variant="ghost" className="mr-4 w-full justify-center">
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild className="w-full justify-center">
+                  <Link href="/register">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </motion.div>
