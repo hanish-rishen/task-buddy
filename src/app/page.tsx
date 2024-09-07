@@ -21,7 +21,7 @@ export default function Home() {
   if (!mounted) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50 landing-page">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50 landing-page overflow-x-hidden">
       <motion.div 
         className="min-h-screen flex flex-col items-center justify-center text-center px-4 sm:px-6 lg:px-8"
         style={{ opacity, scale }}
