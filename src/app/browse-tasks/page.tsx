@@ -17,7 +17,7 @@ type Task = {
 
 export default function BrowseTasks() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [tasks, setTasks] = useState<Task[]>([
+  const [tasks] = useState<Task[]>([
     { id: 1, title: "Grocery Shopping", description: "Need help with weekly grocery shopping", duration: 1, postedBy: "Alice", location: "Downtown" },
     { id: 2, title: "Garden Maintenance", description: "Help needed to mow lawn and trim hedges", duration: 2, postedBy: "Bob", location: "Suburbs" },
     { id: 3, title: "Dog Walking", description: "Walk my dog for 30 minutes", duration: 0.5, postedBy: "Charlie", location: "Park Area" },
