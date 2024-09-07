@@ -1,4 +1,4 @@
-import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore'
+import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 
 export type Task = {
@@ -40,4 +40,13 @@ export const updateTask = async (id: string, task: Partial<Task>): Promise<void>
 export const deleteTask = async (id: string): Promise<void> => {
   const taskDoc = doc(getDb(), 'tasks', id)
   await deleteDoc(taskDoc)
+}
+
+export const getTask = async (id: string): Promise<Task | null> => {
+  const taskDoc = doc(getDb(), 'tasks', id)
+  const taskSnapshot = await getDoc(taskDoc)
+  if (taskSnapshot.exists()) {
+    return { id: taskSnapshot.id, ...taskSnapshot.data() } as Task
+  }
+  return null
 }

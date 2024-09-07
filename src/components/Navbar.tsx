@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge"
 
 const navItems = [
   { name: 'Home', href: '/' },
-  { name: 'Browse Tasks', href: '/browse-tasks' },
   { name: 'About', href: '/about' },
   { name: 'FAQ', href: '/faq' },
 ]

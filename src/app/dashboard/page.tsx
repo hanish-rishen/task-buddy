@@ -84,7 +84,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto pt-20 px-4">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">TaskBuddy</h1>
         <div className="flex items-center space-x-2">
@@ -110,6 +110,7 @@ export default function Dashboard() {
                   value={newTask.title}
                   onChange={handleInputChange}
                   required
+                  maxLength={50}
                 />
               </div>
               <div className="space-y-2">
@@ -121,6 +122,7 @@ export default function Dashboard() {
                   value={newTask.description}
                   onChange={handleInputChange}
                   required
+                  maxLength={200}
                 />
               </div>
               <div className="space-y-2">
@@ -178,7 +180,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         {getTaskIcon(task.title)}
-                        <CardTitle>{task.title}</CardTitle>
+                        <CardTitle className="line-clamp-1">{task.title}</CardTitle>
                       </div>
                       {task.postedBy === 'You' && <Star className="h-5 w-5 text-yellow-400" />}
                     </div>
@@ -192,7 +194,7 @@ export default function Dashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p>{task.description}</p>
+                    <p className="line-clamp-2">{task.description}</p>
                     <p className="mt-2">Duration: {task.duration} hours</p>
                   </CardContent>
                   <CardFooter className="flex justify-between">
