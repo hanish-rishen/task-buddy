@@ -33,11 +33,11 @@ export default function Home() {
       className: "col-span-3 lg:col-span-1",
       background: (
         <Image
-          src="https://images.unsplash.com/photo-1495364141860-b0d03eccd065?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1776&q=80"
+          src="https://images.unsplash.com/photo-1501139083538-0139583c060f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
           alt="Time is Currency"
           layout="fill"
           objectFit="cover"
-          className="opacity-70"
+          className="opacity-20"
         />
       ),
     },
@@ -50,11 +50,11 @@ export default function Home() {
       className: "col-span-3 lg:col-span-2",
       background: (
         <Image
-          src="https://images.unsplash.com/photo-1556484687-30636164638b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80"
+          src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
           alt="Build Connections"
           layout="fill"
           objectFit="cover"
-          className="opacity-70"
+          className="opacity-20"
         />
       ),
     },
@@ -67,11 +67,11 @@ export default function Home() {
       className: "col-span-3",
       background: (
         <Image
-          src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1784&q=80"
+          src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
           alt="Diverse Skills"
           layout="fill"
           objectFit="cover"
-          className="opacity-70"
+          className="opacity-20"
         />
       ),
     },
