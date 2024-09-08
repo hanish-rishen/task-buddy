@@ -23,37 +23,24 @@ export default function Dashboard() {
   const { user } = useAuth()
 
   useEffect(() => {
-    if (user) {
-      const fetchTimeCredits = async () => {
-        await addInitialCredits(user.uid)
-        const credits = await getUserTimeCredits(user.uid)
-        setTimeCredits(credits)
+    const fetchData = async () => {
+      if (user) {
+        setIsLoading(true);
+        try {
+          await addInitialCredits(user.uid);
+          const credits = await getUserTimeCredits(user.uid);
+          setTimeCredits(credits);
+          const fetchedTasks = await getTasks(user.uid);
+          setTasks(fetchedTasks);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        } finally {
+          setIsLoading(false);
+        }
       }
-      fetchTimeCredits()
-    }
-  }, [user])
-
-  const fetchTasks = async () => {
-    if (user?.uid) {
-      setIsLoading(true)
-      try {
-        console.log("Fetching tasks for user:", user.uid)
-        const fetchedTasks = await getTasks(user.uid)
-        console.log("Fetched tasks:", fetchedTasks)
-        setTasks(fetchedTasks)
-      } catch (error) {
-        console.error("Error fetching tasks:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (user?.uid) {
-      fetchTasks()
-    }
-  }, [user])
+    };
+    fetchData();
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -77,7 +64,8 @@ export default function Dashboard() {
       setNewTask({ title: '', description: '', duration: 0, postedById: '' })
       setEditingTask(null)
       setIsDialogOpen(false)
-      await fetchTasks()
+      const updatedTasks = await getTasks(user.uid)
+      setTasks(updatedTasks)
     } catch (error) {
       console.error("Error creating/updating task:", error)
       if (error instanceof Error) {
@@ -99,7 +87,8 @@ export default function Dashboard() {
   const handleDelete = async (id: string) => {
     await deleteTask(id)
     setDeleteConfirmTask(null)
-    await fetchTasks()
+    const updatedTasks = await getTasks(user?.uid || '')
+    setTasks(updatedTasks)
   }
 
   const getTaskIcon = (title: string) => {
@@ -131,7 +120,7 @@ export default function Dashboard() {
 
       <div className="bg-blue-100 p-4 rounded-lg mb-8">
         <h2 className="text-xl font-semibold mb-2">How Time Credits Work</h2>
-        <p>You start with 30 minutes of credit. When you take a task, credits are deducted. After completing a task, you earn the task's duration in credits. If you finish early, you keep the difference!</p>
+        <p>You start with 30 minutes of credit. When you take a task, credits are deducted. After completing a task, you earn the task&apos;s duration in credits. If you finish early, you keep the difference!</p>
       </div>
 
       <Card className="mb-8">
