@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Task, getTask } from '@/lib/firestore'
+import { Task, getTask, takeTask } from '@/lib/firestore'
 import { formatDistanceToNow } from 'date-fns'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/AuthContext'
@@ -47,6 +47,21 @@ export default function TaskDetails() {
       return user.photoURL || `https://api.dicebear.com/6.x/initials/svg?seed=${user.displayName || user.email}`
     }
     return `https://api.dicebear.com/6.x/initials/svg?seed=${postedBy}`
+  }
+
+  const handleTakeTask = async () => {
+    if (!user || !task) return;
+    setIsLoading(true)
+    try {
+      await takeTask(user.uid, task.id, task.duration)
+      // Redirect to my-tasks page
+      window.location.href = '/my-tasks'
+    } catch (error) {
+      console.error("Error taking task:", error)
+      // Show error message to user
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -106,8 +121,15 @@ export default function TaskDetails() {
         </Button>
         <Button 
           className="bg-green-500 hover:bg-green-600 transition-colors duration-300"
+          onClick={handleTakeTask}
+          disabled={isLoading}
         >
-          Take Task
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Taking Task...
+            </>
+          ) : "Take Task"}
         </Button>
       </motion.div>
     </motion.div>

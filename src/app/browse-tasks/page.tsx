@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Task as FirestoreTask, getTasks } from '@/lib/firestore'
+import { Task as FirestoreTask, getTasks, takeTask } from '@/lib/firestore'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/AuthContext'
 import { motion } from 'framer-motion'
@@ -13,6 +13,7 @@ import { Loader2, Clock, Calendar, Tag } from 'lucide-react'
 
 type Task = FirestoreTask & {
   location?: string
+  status: 'available' | 'taken'
 }
 
 export default function BrowseTasks() {
@@ -36,8 +37,9 @@ export default function BrowseTasks() {
   }, [])
 
   const filteredTasks = tasks.filter(task => 
-    task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    task.description.toLowerCase().includes(searchTerm.toLowerCase())
+    task.status !== 'taken' &&
+    (task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    task.description.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   const getAvatarSrc = (postedBy: string) => {
@@ -45,6 +47,27 @@ export default function BrowseTasks() {
       return user.photoURL || `https://api.dicebear.com/6.x/initials/svg?seed=${user.displayName || user.email}`
     }
     return `https://api.dicebear.com/6.x/initials/svg?seed=${postedBy}`
+  }
+
+  const handleTakeTask = async (task: Task) => {
+    if (!user) {
+      // Handle not logged in state
+      return
+    }
+    setIsLoading(true)
+    try {
+      await takeTask(user.uid, task.id, task.duration)
+      // Refresh the task list
+      const updatedTasks = await getTasks()
+      setTasks(updatedTasks as Task[])
+      // Show success message
+      alert("Task taken successfully!")
+    } catch (error) {
+      console.error("Error taking task:", error)
+      alert(error instanceof Error ? error.message : "An error occurred while taking the task")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -108,8 +131,27 @@ export default function BrowseTasks() {
                     )}
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="w-full text-xs sm:text-sm" onClick={() => window.location.href = `/task-details/${task.id}`}>View Details</Button>
+                <CardFooter className="flex justify-between">
+                  <Button 
+                    variant="outline" 
+                    className="w-1/2 text-xs sm:text-sm mr-2" 
+                    onClick={() => window.location.href = `/task-details/${task.id}`}
+                  >
+                    View Details
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    className="w-1/2 text-xs sm:text-sm bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105" 
+                    onClick={() => handleTakeTask(task)}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Taking...
+                      </>
+                    ) : "Take Task"}
+                  </Button>
                 </CardFooter>
               </Card>
             </motion.div>

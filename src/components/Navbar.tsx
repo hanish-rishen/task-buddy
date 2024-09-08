@@ -35,6 +35,7 @@ export default function Navbar() {
   const authenticatedNavItems = [
     { name: 'Home', href: '/' },
     { name: 'Browse Tasks', href: '/browse-tasks' },
+    { name: 'My Tasks', href: '/my-tasks' },
     { name: 'Dashboard', href: '/dashboard' },
   ]
 

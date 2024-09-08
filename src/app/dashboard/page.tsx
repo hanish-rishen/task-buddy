@@ -5,20 +5,33 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Task, getTasks, createTask, updateTask, deleteTask } from '@/lib/firestore'
+import { Task, getTasks, createTask, updateTask, deleteTask, getUserTimeCredits, addInitialCredits } from '@/lib/firestore'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Loader2, Star, CheckSquare, ShoppingCart, Scissors, Book, Briefcase, Wrench, Paintbrush } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
+import { useAuth } from '@/AuthContext'
 
 export default function Dashboard() {
-  const [timeBalance] = useState(5)
+  const [timeCredits, setTimeCredits] = useState(0)
   const [tasks, setTasks] = useState<Task[]>([])
-  const [newTask, setNewTask] = useState({ title: '', description: '', duration: 0 })
+  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'createdAt' | 'postedBy' | 'status'>>({ title: '', description: '', duration: 0 })
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [deleteConfirmTask, setDeleteConfirmTask] = useState<Task | null>(null)
+  const { user } = useAuth()
+
+  useEffect(() => {
+    if (user) {
+      const fetchTimeCredits = async () => {
+        await addInitialCredits(user.uid)
+        const credits = await getUserTimeCredits(user.uid)
+        setTimeCredits(credits)
+      }
+      fetchTimeCredits()
+    }
+  }, [user])
 
   useEffect(() => {
     fetchTasks()
@@ -49,7 +62,7 @@ export default function Dashboard() {
       if (editingTask) {
         await updateTask(editingTask.id, newTask)
       } else {
-        await createTask({ ...newTask, postedBy: 'You' })
+        await createTask({ ...newTask, postedBy: user?.displayName || 'Anonymous' })
       }
       setNewTask({ title: '', description: '', duration: 0 })
       setEditingTask(null)
@@ -87,11 +100,19 @@ export default function Dashboard() {
     <div className="container mx-auto pt-20 px-4">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">TaskBuddy</h1>
-        <div className="flex items-center space-x-2">
-          <span className="font-semibold">Time Balance:</span>
-          <Badge variant="secondary" className="text-lg">{timeBalance} hours</Badge>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold">Time Credits:</span>
+            <Badge variant="secondary" className="text-lg">{timeCredits} minutes</Badge>
+          </div>
+          <Button onClick={() => setIsDialogOpen(true)}>Post New Task</Button>
         </div>
       </header>
+
+      <div className="bg-blue-100 p-4 rounded-lg mb-8">
+        <h2 className="text-xl font-semibold mb-2">How Time Credits Work</h2>
+        <p>You start with 30 minutes of credit. When you take a task, credits are deducted. After completing a task, you earn the task's duration in credits. If you finish early, you keep the difference!</p>
+      </div>
 
       <Card className="mb-8">
         <CardHeader>
@@ -182,7 +203,7 @@ export default function Dashboard() {
                         {getTaskIcon(task.title)}
                         <CardTitle className="line-clamp-1">{task.title}</CardTitle>
                       </div>
-                      {task.postedBy === 'You' && <Star className="h-5 w-5 text-yellow-400" />}
+                      {task.postedBy === user?.displayName && <Star className="h-5 w-5 text-yellow-400" />}
                     </div>
                     <CardDescription>
                       Posted by: {task.postedBy}
