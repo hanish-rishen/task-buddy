@@ -111,7 +111,7 @@ export default function Dashboard() {
 
       <div className="bg-blue-100 p-4 rounded-lg mb-8">
         <h2 className="text-xl font-semibold mb-2">How Time Credits Work</h2>
-        <p>You start with 30 minutes of credit. When you take a task, credits are deducted. After completing a task, you earn the task's duration in credits. If you finish early, you keep the difference!</p>
+        <p>You start with 30 minutes of credit. When you take a task, credits are deducted. After completing a task, you earn the task&apos;s duration in credits. If you finish early, you keep the difference!</p>
       </div>
 
       <Card className="mb-8">

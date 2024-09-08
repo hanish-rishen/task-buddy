@@ -40,7 +40,7 @@ export default function MyTasks() {
     <div className="container mx-auto pt-20 px-4">
       <h1 className="text-3xl font-bold mb-8">My Tasks</h1>
       {tasks.length === 0 ? (
-        <p>You haven't taken any tasks yet.</p>
+        <p>You haven&apos;t taken any tasks yet.</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {tasks.map((task) => (
