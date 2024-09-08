@@ -90,6 +90,7 @@ export default function MyTasks() {
   return (
     <div className="container mx-auto pt-20 px-4">
       <h1 className="text-3xl font-bold mb-8">My Tasks</h1>
+      <p className="mb-4">Your current time credits: {timeCredits} hours</p>
       {tasks.length === 0 ? (
         <p>You haven&apos;t taken any tasks yet.</p>
       ) : (
