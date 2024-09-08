@@ -1,4 +1,4 @@
-import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, serverTimestamp } from 'firebase/firestore'
+import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, serverTimestamp, FieldValue } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 
 export type Task = {
@@ -8,8 +8,9 @@ export type Task = {
   duration: number
   postedBy: string
   postedById: string
+  posterEmail: string
   createdAt: { seconds: number; nanoseconds: number }
-  status: string
+  status: 'available' | 'taken' | 'completed'
   takenBy?: string
 }
 
@@ -21,6 +22,8 @@ const getDb = (): Firestore => {
   }
   return db
 }
+
+const getTasksCollection = () => collection(getDb(), 'tasks')
 
 export const getTasks = async (userId?: string): Promise<Task[]> => {
   const tasksCollection = collection(getDb(), 'tasks')
@@ -34,12 +37,13 @@ export const getTasks = async (userId?: string): Promise<Task[]> => {
   return tasks
 }
 
-export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'postedBy' | 'status'>, user: { uid: string, displayName: string | null }): Promise<Task> => {
+export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'status'>, user: { uid: string, displayName: string | null, email: string | null }): Promise<Task> => {
   const tasksCollection = collection(getDb(), 'tasks')
   const newTask = {
     ...task,
     postedBy: user.displayName || 'Anonymous',
     postedById: user.uid,
+    posterEmail: user.email || '',
     createdAt: serverTimestamp(),
     status: 'available'
   }
@@ -123,7 +127,15 @@ export const getUserTasks = async (userId: string): Promise<Task[]> => {
   const tasksCollection = collection(getDb(), 'tasks')
   const q = query(tasksCollection, where('takenBy', '==', userId))
   const querySnapshot = await getDocs(q)
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task))
+  const tasks = querySnapshot.docs.map(doc => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      ...data,
+      posterEmail: data.posterEmail || data.postedBy // Fallback to postedBy if posterEmail is not available
+    } as Task
+  })
+  return tasks
 }
 
 export const addInitialCredits = async (userId: string) => {
@@ -131,4 +143,12 @@ export const addInitialCredits = async (userId: string) => {
   if (!userDoc.exists()) {
     await initializeUserProfile(userId)
   }
+}
+
+export const completeTask = async (taskId: string) => {
+  const taskRef = doc(getDb(), 'tasks', taskId)
+  await updateDoc(taskRef, {
+    status: 'completed',
+    completedAt: serverTimestamp()
+  })
 }

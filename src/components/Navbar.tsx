@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
-import { Clock, X, Menu } from 'lucide-react'
+import { X, Menu } from 'lucide-react'
 import { useAuth } from '@/AuthContext'
 import { logoutUser } from '@/lib/auth'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -45,12 +45,16 @@ export default function Navbar() {
     <nav className="bg-white shadow-sm relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex">
+          <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <Clock className="h-8 w-8 text-blue-500" />
-              <span className="ml-2 text-2xl font-bold text-gray-900">TaskBuddy</span>
+              <div className="h-8 w-8 bg-[#c1f1d5] rounded-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-black">
+                  <path d="M4 5h16v2H4zm2 4h12v2H6zm-2 4h16v2H4zm2 4h12v2H6z"/>
+                </svg>
+              </div>
+              <span className="ml-2 text-2xl font-bold text-gray-900">taskbuddy</span>
             </Link>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div className="hidden sm:ml-16 sm:flex sm:space-x-8">
               {currentNavItems.map((item) => (
                 <Link
                   key={item.name}

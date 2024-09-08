@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Task, getTask, takeTask } from '@/lib/firestore'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, isValid } from 'date-fns'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/AuthContext'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Clock } from 'lucide-react'
 
 export default function TaskDetails() {
   const { id } = useParams()
@@ -64,6 +64,29 @@ export default function TaskDetails() {
     }
   }
 
+  const formatCreatedAt = (createdAt: any) => {
+    if (!createdAt) return 'Recently';
+    
+    let date;
+    if (createdAt.seconds) {
+      // Firestore Timestamp
+      date = new Date(createdAt.seconds * 1000);
+    } else if (createdAt.toDate) {
+      // Firestore Timestamp object
+      date = createdAt.toDate();
+    } else if (createdAt instanceof Date) {
+      // JavaScript Date object
+      date = createdAt;
+    } else if (typeof createdAt === 'string') {
+      // ISO string
+      date = new Date(createdAt);
+    } else {
+      return 'Recently';
+    }
+
+    return isValid(date) ? formatDistanceToNow(date, { addSuffix: true }) : 'Recently';
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -92,11 +115,10 @@ export default function TaskDetails() {
         </Avatar>
         <div>
           <p className="font-semibold">{task.postedBy}</p>
-          {task.createdAt && (
-            <p className="text-sm text-gray-500">
-              Posted {formatDistanceToNow(new Date(task.createdAt.seconds * 1000), { addSuffix: true })}
-            </p>
-          )}
+          <div className="flex items-center text-sm text-gray-500">
+            <Clock className="h-4 w-4 mr-1" />
+            <p>{formatCreatedAt(task.createdAt)}</p>
+          </div>
         </div>
         <Badge variant="secondary" className="ml-auto">{task.duration} hours</Badge>
       </motion.div>

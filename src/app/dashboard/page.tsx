@@ -11,16 +11,24 @@ import { Loader2, Star, CheckSquare, ShoppingCart, Scissors, Book, Briefcase, Wr
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/AuthContext'
+import { useToast } from "@/hooks/use-toast"
 
 export default function Dashboard() {
   const [timeCredits, setTimeCredits] = useState(0)
   const [tasks, setTasks] = useState<Task[]>([])
-  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'createdAt' | 'postedBy' | 'status'>>({ title: '', description: '', duration: 0, postedById: '' })
+  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'createdAt' | 'postedBy' | 'status'>>({ 
+    title: '', 
+    description: '', 
+    duration: 0, 
+    postedById: '',
+    posterEmail: ''
+  })
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [deleteConfirmTask, setDeleteConfirmTask] = useState<Task | null>(null)
   const { user } = useAuth()
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,13 +42,18 @@ export default function Dashboard() {
           setTasks(fetchedTasks);
         } catch (error) {
           console.error("Error fetching data:", error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch data. Please try again.",
+            variant: "destructive",
+          })
         } finally {
           setIsLoading(false);
         }
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -59,20 +72,35 @@ export default function Dashboard() {
         await updateTask(editingTask.id, newTask)
       } else {
         console.log("Creating task with:", newTask, user.uid)
-        await createTask({ ...newTask, postedById: user.uid }, { uid: user.uid, displayName: user.displayName })
+        await createTask({ 
+          ...newTask, 
+          postedById: user.uid,
+          postedBy: user.displayName || '',
+          posterEmail: user.email || '',
+        }, { uid: user.uid, displayName: user.displayName, email: user.email })
       }
-      setNewTask({ title: '', description: '', duration: 0, postedById: '' })
+      setNewTask({ 
+        title: '', 
+        description: '', 
+        duration: 0, 
+        postedById: '',
+        posterEmail: ''
+      })
       setEditingTask(null)
       setIsDialogOpen(false)
       const updatedTasks = await getTasks(user.uid)
       setTasks(updatedTasks)
+      toast({
+        title: "Success",
+        description: editingTask ? "Task updated successfully" : "Task created successfully",
+      })
     } catch (error) {
       console.error("Error creating/updating task:", error)
-      if (error instanceof Error) {
-        alert(`An error occurred: ${error.message}`)
-      } else {
-        alert("An unknown error occurred while saving the task. Please try again.")
-      }
+      toast({
+        title: "Error",
+        description: "An error occurred while saving the task. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -80,15 +108,34 @@ export default function Dashboard() {
 
   const handleEdit = (task: Task) => {
     setEditingTask(task)
-    setNewTask({ title: task.title, description: task.description, duration: task.duration, postedById: task.postedById })
+    setNewTask({ 
+      title: task.title, 
+      description: task.description, 
+      duration: task.duration, 
+      postedById: task.postedById,
+      posterEmail: task.posterEmail
+    })
     setIsDialogOpen(true)
   }
 
   const handleDelete = async (id: string) => {
-    await deleteTask(id)
-    setDeleteConfirmTask(null)
-    const updatedTasks = await getTasks(user?.uid || '')
-    setTasks(updatedTasks)
+    try {
+      await deleteTask(id)
+      setDeleteConfirmTask(null)
+      const updatedTasks = await getTasks(user?.uid || '')
+      setTasks(updatedTasks)
+      toast({
+        title: "Success",
+        description: "Task deleted successfully",
+      })
+    } catch (error) {
+      console.error("Error deleting task:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete task. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const getTaskIcon = (title: string) => {
@@ -106,21 +153,20 @@ export default function Dashboard() {
   console.log("Current tasks:", tasks)
 
   return (
-    <div className="container mx-auto pt-20 px-4">
-      <header className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">TaskBuddy</h1>
-        <div className="flex items-center space-x-4">
+    <div className="container mx-auto pt-4 sm:pt-20 px-4">
+      <header className="flex flex-col sm:flex-row justify-between items-center mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-0">TaskBuddy</h1>
+        <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
           <div className="flex items-center space-x-2">
             <span className="font-semibold">Time Credits:</span>
             <Badge variant="secondary" className="text-lg">{timeCredits} minutes</Badge>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>Post New Task</Button>
         </div>
       </header>
 
       <div className="bg-blue-100 p-4 rounded-lg mb-8">
-        <h2 className="text-xl font-semibold mb-2">How Time Credits Work</h2>
-        <p>You start with 30 minutes of credit. When you take a task, credits are deducted. After completing a task, you earn the task&apos;s duration in credits. If you finish early, you keep the difference!</p>
+        <h2 className="text-lg sm:text-xl font-semibold mb-2">How Time Credits Work</h2>
+        <p className="text-sm sm:text-base">You start with 30 minutes of credit. When you take a task, credits are deducted. After completing a task, you earn the task&apos;s duration in credits. If you finish early, you keep the difference!</p>
       </div>
 
       <Card className="mb-8">
@@ -170,7 +216,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -184,7 +230,7 @@ export default function Dashboard() {
         </form>
       </Card>
 
-      <h2 className="text-2xl font-bold mb-4">Your Tasks</h2>
+      <h2 className="text-xl sm:text-2xl font-bold mb-4">Your Tasks</h2>
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -194,7 +240,7 @@ export default function Dashboard() {
           <p className="text-gray-500">You haven&apos;t posted any tasks yet. Create a new task to get started!</p>
         </Card>
       ) : (
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
             {tasks.map(task => (
               <motion.div
@@ -210,12 +256,12 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         {getTaskIcon(task.title)}
-                        <CardTitle className="line-clamp-1">{task.title}</CardTitle>
+                        <CardTitle className="line-clamp-1 text-base sm:text-lg">{task.title}</CardTitle>
                       </div>
                       {task.postedBy === user?.displayName && <Star className="h-5 w-5 text-yellow-400" />}
                     </div>
                     <CardDescription>
-                      Posted by: {task.postedBy}
+                      <p className="text-xs sm:text-sm">Posted by: {task.postedBy}</p>
                       {task.createdAt && (
                         <p className="text-xs text-gray-500 mt-1">
                           {formatDistanceToNow(new Date(task.createdAt.seconds * 1000), { addSuffix: true })}
@@ -224,12 +270,12 @@ export default function Dashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="line-clamp-2">{task.description}</p>
-                    <p className="mt-2">Duration: {task.duration} hours</p>
+                    <p className="line-clamp-2 text-sm sm:text-base">{task.description}</p>
+                    <p className="mt-2 text-sm sm:text-base">Duration: {task.duration} hours</p>
                   </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button variant="outline" onClick={() => handleEdit(task)}>Edit</Button>
-                    <Button variant="destructive" onClick={() => setDeleteConfirmTask(task)}>Delete</Button>
+                  <CardFooter className="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0">
+                    <Button variant="outline" onClick={() => handleEdit(task)} className="w-full sm:w-auto">Edit</Button>
+                    <Button variant="destructive" onClick={() => setDeleteConfirmTask(task)} className="w-full sm:w-auto">Delete</Button>
                   </CardFooter>
                 </Card>
               </motion.div>
@@ -239,7 +285,7 @@ export default function Dashboard() {
       )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
           </DialogHeader>
@@ -278,7 +324,7 @@ export default function Dashboard() {
               </div>
             </div>
             <DialogFooter className="mt-4">
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -294,7 +340,7 @@ export default function Dashboard() {
       </Dialog>
 
       <Dialog open={!!deleteConfirmTask} onOpenChange={() => setDeleteConfirmTask(null)}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
           </DialogHeader>
@@ -302,8 +348,8 @@ export default function Dashboard() {
             Are you sure you want to delete the task &quot;{deleteConfirmTask?.title}&quot;? This action cannot be undone.
           </DialogDescription>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmTask(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => deleteConfirmTask && handleDelete(deleteConfirmTask.id)}>Delete</Button>
+            <Button variant="outline" onClick={() => setDeleteConfirmTask(null)} className="w-full sm:w-auto">Cancel</Button>
+            <Button variant="destructive" onClick={() => deleteConfirmTask && handleDelete(deleteConfirmTask.id)} className="w-full sm:w-auto">Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

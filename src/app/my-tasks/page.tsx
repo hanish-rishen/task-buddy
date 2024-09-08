@@ -1,16 +1,21 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/AuthContext'
-import { Task, getUserTasks } from '@/lib/firestore'
+import { Task, getUserTasks, completeTask } from '@/lib/firestore'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from 'date-fns'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Mail } from 'lucide-react'
+import { useToast } from "@/hooks/use-toast"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 
 export default function MyTasks() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -26,6 +31,40 @@ export default function MyTasks() {
     }
     fetchTasks()
   }, [user])
+
+  const { toast } = useToast()
+
+  const handleCompleteTask = async (taskId: string) => {
+    try {
+      await completeTask(taskId)
+      setTasks(tasks.filter(task => task.id !== taskId))
+      toast({
+        title: "Task completed",
+        description: "The task has been marked as completed successfully.",
+      })
+    } catch (error) {
+      console.error('Error completing task:', error)
+      toast({
+        title: "Error",
+        description: "Failed to complete task. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleContactPoster = (task: Task) => {
+    console.log("Task object:", task);
+    setSelectedTask(task);
+    setIsDialogOpen(true);
+    if (!task.posterEmail) {
+      console.error("Poster email not available for task:", task);
+      toast({
+        title: "Warning",
+        description: "Poster email might not be available.",
+        variant: "destructive",
+      });
+    }
+  }
 
   if (isLoading) {
     return (
@@ -58,15 +97,41 @@ export default function MyTasks() {
                   </p>
                 )}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex flex-col space-y-2">
                 <Button variant="outline" className="w-full" onClick={() => window.location.href = `/task-details/${task.id}`}>
                   View Details
+                </Button>
+                <Button variant="default" className="w-full" onClick={() => handleCompleteTask(task.id)}>
+                  Complete Task
+                </Button>
+                <Button variant="secondary" className="w-full" onClick={() => handleContactPoster(task)}>
+                  <Mail className="mr-2 h-4 w-4" /> Contact Poster
                 </Button>
               </CardFooter>
             </Card>
           ))}
         </div>
       )}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contact Poster</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            Here are the details to contact the task poster:
+          </DialogDescription>
+          {selectedTask && (
+            <div className="py-4">
+              <p><strong>Task:</strong> {selectedTask.title}</p>
+              <p><strong>Poster:</strong> {selectedTask.postedBy}</p>
+              <p><strong>Email:</strong> {selectedTask.posterEmail || 'Not available'}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

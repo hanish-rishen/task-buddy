@@ -10,6 +10,8 @@ import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/AuthContext'
 import { motion } from 'framer-motion'
 import { Loader2, Clock, Calendar, Tag } from 'lucide-react'
+import { useToast } from "@/hooks/use-toast"
+import ShinyButton from '@/components/magicui/shiny-button'
 
 type Task = FirestoreTask & {
   location?: string
@@ -22,6 +24,7 @@ export default function BrowseTasks() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -42,31 +45,46 @@ export default function BrowseTasks() {
     task.description.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
-  const getAvatarSrc = (task: Task) => {
-    if (user && user.uid === task.postedById) {
+  const getAvatarSrc = (postedBy: string, postedById: string) => {
+    if (user && user.uid === postedById) {
       return user.photoURL || `https://api.dicebear.com/6.x/initials/svg?seed=${user.displayName || user.email}`
     }
-    return `https://api.dicebear.com/6.x/initials/svg?seed=${task.postedBy}`
+    return `https://api.dicebear.com/6.x/initials/svg?seed=${postedBy}`
   }
 
   const handleTakeTask = async (task: Task) => {
-    if (!user) {
-      // Handle not logged in state
-      return
-    }
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await takeTask(user.uid, task.id, task.duration)
-      // Refresh the task list
-      const updatedTasks = await getTasks()
-      setTasks(updatedTasks as Task[])
-      // Show success message
-      alert("Task taken successfully!")
+      if (!user) {
+        throw new Error("You must be logged in to take a task.");
+      }
+      await takeTask(user.uid, task.id, task.duration);
+      toast({
+        title: "Task Taken",
+        description: "You have successfully taken the task.",
+        variant: "default",
+        className: "bg-green-500 text-white",
+      });
+      // Refresh tasks after taking one
+      const fetchedTasks = await getTasks();
+      setTasks(fetchedTasks as Task[]);
     } catch (error) {
-      console.error("Error taking task:", error)
-      alert(error instanceof Error ? error.message : "An error occurred while taking the task")
+      console.error("Error taking task:", error);
+      if (error instanceof Error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unknown error occurred while taking the task.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -114,7 +132,7 @@ export default function BrowseTasks() {
                   <div className="flex flex-col space-y-2 mt-3 sm:mt-4">
                     <div className="flex items-center space-x-2">
                       <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
-                        <AvatarImage src={getAvatarSrc(task)} alt={task.postedBy} />
+                        <AvatarImage src={getAvatarSrc(task.postedBy, task.postedById)} alt={task.postedBy} />
                         <AvatarFallback>{task.postedBy[0]}</AvatarFallback>
                       </Avatar>
                       <span className="text-xs sm:text-sm font-medium">{task.postedBy}</span>
@@ -139,19 +157,13 @@ export default function BrowseTasks() {
                   >
                     View Details
                   </Button>
-                  <Button 
-                    variant="default" 
-                    className="w-1/2 text-xs sm:text-sm bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105" 
+                  <ShinyButton
                     onClick={() => handleTakeTask(task)}
-                    disabled={isLoading}
+                    text={isLoading ? "Taking..." : "Take Task"}
+                    className="bg-green-300 w-1/2 text-xs sm:text-sm"
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Taking...
-                      </>
-                    ) : "Take Task"}
-                  </Button>
+                    {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  </ShinyButton>
                 </CardFooter>
               </Card>
             </motion.div>
