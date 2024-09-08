@@ -122,19 +122,19 @@ export const takeTask = async (userId: string, taskId: string, taskDuration: num
 }
 
 export const getUserTasks = async (userId: string): Promise<Task[]> => {
-  const tasksCollection = collection(getDb(), 'tasks')
-  const q = query(tasksCollection, where('takenBy', '==', userId))
-  const querySnapshot = await getDocs(q)
+  const tasksCollection = collection(getDb(), 'tasks');
+  const q = query(tasksCollection, where('takenBy', '==', userId));
+  const querySnapshot = await getDocs(q);
   const tasks = querySnapshot.docs.map(doc => {
-    const data = doc.data()
+    const data = doc.data();
     return {
       id: doc.id,
       ...data,
-      posterEmail: data.posterEmail || data.postedBy // Fallback to postedBy if posterEmail is not available
-    } as Task
-  })
-  return tasks
-}
+      posterEmail: data.posterEmail || data.postedBy
+    } as Task;
+  });
+  return tasks.filter(task => task.status !== 'completed');
+};
 
 export const addInitialCredits = async (userId: string) => {
   const userDoc = await getDoc(doc(getDb(), 'users', userId));
@@ -160,10 +160,8 @@ export const completeTask = async (taskId: string, userId: string) => {
     const currentCredits = userDoc.data().timeCredits || 0;
     const newCredits = currentCredits + 60; // Add 1 hour (60 minutes)
 
-    transaction.update(taskRef, {
-      status: 'completed',
-      completedAt: serverTimestamp()
-    });
+    // Delete the task instead of updating it
+    transaction.delete(taskRef);
 
     transaction.update(userRef, {
       timeCredits: newCredits

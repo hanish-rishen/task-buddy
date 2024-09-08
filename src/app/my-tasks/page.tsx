@@ -25,7 +25,7 @@ export default function MyTasks() {
         setIsLoading(true)
         try {
           const fetchedTasks = await getUserTasks(user.uid)
-          setTasks(fetchedTasks)
+          setTasks(fetchedTasks.filter(task => task.status !== 'completed'))
           const credits = await getUserTimeCredits(user.uid)
           setTimeCredits(credits)
         } finally {
@@ -48,9 +48,8 @@ export default function MyTasks() {
         description: "You've earned 1 hour of time credit!",
         variant: "default",
       });
-      // Refresh tasks and time credits
-      const updatedTasks = await getUserTasks(user.uid);
-      setTasks(updatedTasks);
+      // Remove the completed task from the local state
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
       const updatedCredits = await getUserTimeCredits(user.uid);
       setTimeCredits(updatedCredits);
     } catch (error) {

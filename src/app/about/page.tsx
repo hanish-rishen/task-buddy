@@ -3,9 +3,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function About() {
   const teamMembers = [
-    { name: "Jane Doe", role: "Founder & CEO", avatar: "JD" },
-    { name: "John Smith", role: "CTO", avatar: "JS" },
-    { name: "Alice Johnson", role: "Community Manager", avatar: "AJ" },
+    { name: "Hanish", avatar: "H" },
+    { name: "Arnav", avatar: "A" },
+    { name: "Hemanth", avatar: "H" },
   ]
 
   return (
@@ -47,7 +47,6 @@ export default function About() {
                   <AvatarFallback>{member.avatar}</AvatarFallback>
                 </Avatar>
                 <CardTitle className="text-center mt-4">{member.name}</CardTitle>
-                <CardDescription className="text-center">{member.role}</CardDescription>
               </CardHeader>
             </Card>
           ))}
