@@ -9,25 +9,41 @@ import { formatDistanceToNow, isValid } from 'date-fns'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/AuthContext'
 import { Loader2, Clock } from 'lucide-react'
+import { Timestamp } from 'firebase/firestore'
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from 'next/navigation'
 
 export default function TaskDetails() {
   const { id } = useParams()
   const [task, setTask] = useState<Task | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
 
   useEffect(() => {
     const fetchTask = async () => {
       setIsLoading(true)
       try {
-        const fetchedTask = await getTask(id as string)
-        setTask(fetchedTask)
+        if (typeof id === 'string') {
+          const fetchedTask = await getTask(id)
+          setTask(fetchedTask)
+        } else {
+          throw new Error('Invalid task ID')
+        }
+      } catch (error) {
+        console.error('Error fetching task:', error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch task details. Please try again.",
+          variant: "destructive",
+        })
       } finally {
         setIsLoading(false)
       }
     }
     fetchTask()
-  }, [id])
+  }, [id, toast])
 
   if (isLoading) {
     return (
@@ -54,32 +70,36 @@ export default function TaskDetails() {
     setIsLoading(true)
     try {
       await takeTask(user.uid, task.id, task.duration)
-      // Redirect to my-tasks page
-      window.location.href = '/my-tasks'
+      toast({
+        title: "Success",
+        description: "Task taken successfully!",
+        variant: "default",
+      })
+      router.push('/my-tasks')
     } catch (error) {
       console.error("Error taking task:", error)
-      // Show error message to user
+      toast({
+        title: "Error",
+        description: "Failed to take task. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const formatCreatedAt = (createdAt: any) => {
+  const formatCreatedAt = (createdAt: Timestamp | { seconds: number; nanoseconds: number } | Date | string | null) => {
     if (!createdAt) return 'Recently';
     
-    let date;
-    if (createdAt.seconds) {
-      // Firestore Timestamp
-      date = new Date(createdAt.seconds * 1000);
-    } else if (createdAt.toDate) {
-      // Firestore Timestamp object
+    let date: Date;
+    if (createdAt instanceof Timestamp) {
       date = createdAt.toDate();
     } else if (createdAt instanceof Date) {
-      // JavaScript Date object
       date = createdAt;
     } else if (typeof createdAt === 'string') {
-      // ISO string
       date = new Date(createdAt);
+    } else if (typeof createdAt === 'object' && 'seconds' in createdAt && 'nanoseconds' in createdAt) {
+      date = new Date(createdAt.seconds * 1000 + createdAt.nanoseconds / 1000000);
     } else {
       return 'Recently';
     }
@@ -138,7 +158,7 @@ export default function TaskDetails() {
         transition={{ delay: 0.6, duration: 0.5 }}
         className="flex justify-between items-center"
       >
-        <Button variant="outline" onClick={() => window.history.back()}>
+        <Button variant="outline" onClick={() => router.back()}>
           Back
         </Button>
         <Button 

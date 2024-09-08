@@ -1,4 +1,4 @@
-import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, serverTimestamp, FieldValue } from 'firebase/firestore'
+import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, serverTimestamp } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 
 export type Task = {
@@ -22,8 +22,6 @@ const getDb = (): Firestore => {
   }
   return db
 }
-
-const getTasksCollection = () => collection(getDb(), 'tasks')
 
 export const getTasks = async (userId?: string): Promise<Task[]> => {
   const tasksCollection = collection(getDb(), 'tasks')
