@@ -1,4 +1,4 @@
-import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, serverTimestamp } from 'firebase/firestore'
+import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, serverTimestamp, runTransaction } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 
 export type Task = {
@@ -137,16 +137,36 @@ export const getUserTasks = async (userId: string): Promise<Task[]> => {
 }
 
 export const addInitialCredits = async (userId: string) => {
-  const userDoc = await getDoc(doc(getDb(), 'users', userId))
+  const userDoc = await getDoc(doc(getDb(), 'users', userId));
   if (!userDoc.exists()) {
-    await initializeUserProfile(userId)
+    await setDoc(doc(getDb(), 'users', userId), {
+      timeCredits: 240 // 4 hours in minutes
+    });
   }
 }
 
-export const completeTask = async (taskId: string) => {
-  const taskRef = doc(getDb(), 'tasks', taskId)
-  await updateDoc(taskRef, {
-    status: 'completed',
-    completedAt: serverTimestamp()
-  })
+export const completeTask = async (taskId: string, userId: string) => {
+  const taskRef = doc(getDb(), 'tasks', taskId);
+  const userRef = doc(getDb(), 'users', userId);
+
+  await runTransaction(getDb(), async (transaction) => {
+    const taskDoc = await transaction.get(taskRef);
+    const userDoc = await transaction.get(userRef);
+
+    if (!taskDoc.exists() || !userDoc.exists()) {
+      throw new Error("Task or user not found");
+    }
+
+    const currentCredits = userDoc.data().timeCredits || 0;
+    const newCredits = currentCredits + 60; // Add 1 hour (60 minutes)
+
+    transaction.update(taskRef, {
+      status: 'completed',
+      completedAt: serverTimestamp()
+    });
+
+    transaction.update(userRef, {
+      timeCredits: newCredits
+    });
+  });
 }

@@ -67,24 +67,32 @@ export default function TaskDetails() {
 
   const handleTakeTask = async () => {
     if (!user || !task) return;
-    setIsLoading(true)
+    if (user.uid === task.postedById) {
+      toast({
+        title: "Error",
+        description: "You cannot take your own task.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsLoading(true);
     try {
-      await takeTask(user.uid, task.id, task.duration)
+      await takeTask(user.uid, task.id, task.duration);
       toast({
         title: "Success",
         description: "Task taken successfully!",
         variant: "default",
-      })
-      router.push('/my-tasks')
+      });
+      router.push('/my-tasks');
     } catch (error) {
-      console.error("Error taking task:", error)
+      console.error("Error taking task:", error);
       toast({
         title: "Error",
         description: "Failed to take task. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 

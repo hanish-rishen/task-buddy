@@ -58,6 +58,9 @@ export default function BrowseTasks() {
       if (!user) {
         throw new Error("You must be logged in to take a task.");
       }
+      if (user.uid === task.postedById) {
+        throw new Error("You cannot take your own task.");
+      }
       await takeTask(user.uid, task.id, task.duration);
       toast({
         title: "Task Taken",
@@ -159,10 +162,9 @@ export default function BrowseTasks() {
                   </Button>
                   <ShinyButton
                     onClick={() => handleTakeTask(task)}
-                    text={isLoading ? "Taking..." : "Take Task"}
                     className="bg-green-300 w-1/2 text-xs sm:text-sm"
                   >
-                    {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    Take Task
                   </ShinyButton>
                 </CardFooter>
               </Card>

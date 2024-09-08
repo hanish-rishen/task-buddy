@@ -1,13 +1,13 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/AuthContext'
-import { Task, getUserTasks, completeTask } from '@/lib/firestore'
+import { Task, getUserTasks, completeTask, getUserTimeCredits } from '@/lib/firestore'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from 'date-fns'
 import { Loader2, Mail } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 export default function MyTasks() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -17,38 +17,51 @@ export default function MyTasks() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
+  const [timeCredits, setTimeCredits] = useState(0)
+
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetchData = async () => {
       if (user) {
         setIsLoading(true)
         try {
           const fetchedTasks = await getUserTasks(user.uid)
           setTasks(fetchedTasks)
+          const credits = await getUserTimeCredits(user.uid)
+          setTimeCredits(credits)
         } finally {
           setIsLoading(false)
         }
       }
     }
-    fetchTasks()
+    fetchData()
   }, [user])
 
   const { toast } = useToast()
 
   const handleCompleteTask = async (taskId: string) => {
+    if (!user) return;
+    setIsLoading(true);
     try {
-      await completeTask(taskId)
-      setTasks(tasks.filter(task => task.id !== taskId))
+      await completeTask(taskId, user.uid);
       toast({
-        title: "Task completed",
-        description: "The task has been marked as completed successfully.",
-      })
+        title: "Task Completed",
+        description: "You've earned 1 hour of time credit!",
+        variant: "default",
+      });
+      // Refresh tasks and time credits
+      const updatedTasks = await getUserTasks(user.uid);
+      setTasks(updatedTasks);
+      const updatedCredits = await getUserTimeCredits(user.uid);
+      setTimeCredits(updatedCredits);
     } catch (error) {
-      console.error('Error completing task:', error)
+      console.error("Error completing task:", error);
       toast({
         title: "Error",
         description: "Failed to complete task. Please try again.",
         variant: "destructive",
-      })
+      });
+    } finally {
+      setIsLoading(false);
     }
   }
 
