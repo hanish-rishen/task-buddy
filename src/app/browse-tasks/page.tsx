@@ -42,11 +42,11 @@ export default function BrowseTasks() {
     task.description.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
-  const getAvatarSrc = (postedBy: string) => {
-    if (user && postedBy === 'You') {
+  const getAvatarSrc = (task: Task) => {
+    if (user && user.uid === task.postedById) {
       return user.photoURL || `https://api.dicebear.com/6.x/initials/svg?seed=${user.displayName || user.email}`
     }
-    return `https://api.dicebear.com/6.x/initials/svg?seed=${postedBy}`
+    return `https://api.dicebear.com/6.x/initials/svg?seed=${task.postedBy}`
   }
 
   const handleTakeTask = async (task: Task) => {
@@ -113,8 +113,8 @@ export default function BrowseTasks() {
                 <CardContent className="flex-grow">
                   <div className="flex flex-col space-y-2 mt-3 sm:mt-4">
                     <div className="flex items-center space-x-2">
-                      <Avatar className="h-4 w-4 sm:h-5 sm:w-5">
-                        <AvatarImage src={getAvatarSrc(task.postedBy)} alt={task.postedBy} />
+                      <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
+                        <AvatarImage src={getAvatarSrc(task)} alt={task.postedBy} />
                         <AvatarFallback>{task.postedBy[0]}</AvatarFallback>
                       </Avatar>
                       <span className="text-xs sm:text-sm font-medium">{task.postedBy}</span>

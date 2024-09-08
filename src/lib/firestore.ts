@@ -1,4 +1,4 @@
-import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where } from 'firebase/firestore'
+import { Firestore, getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, serverTimestamp, FieldValue } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 
 export type Task = {
@@ -7,7 +7,10 @@ export type Task = {
   description: string
   duration: number
   postedBy: string
+  postedById: string
   createdAt: { seconds: number; nanoseconds: number }
+  status: string
+  takenBy?: string
 }
 
 let db: Firestore
@@ -21,16 +24,35 @@ const getDb = (): Firestore => {
 
 const getTasksCollection = () => collection(getDb(), 'tasks')
 
-export const getTasks = async (): Promise<Task[]> => {
+export const getTasks = async (userId?: string): Promise<Task[]> => {
   const tasksCollection = collection(getDb(), 'tasks')
-  const querySnapshot = await getDocs(tasksCollection)
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task))
+  let q = query(tasksCollection)
+  if (userId) {
+    q = query(tasksCollection, where('postedById', '==', userId))
+  }
+  const querySnapshot = await getDocs(q)
+  const tasks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task))
+  console.log(`Fetched ${tasks.length} tasks${userId ? ` for user ${userId}` : ''}:`, tasks)
+  return tasks
 }
 
-export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<string> => {
-  const taskWithTimestamp = { ...task, createdAt: new Date() }
-  const docRef = await addDoc(getTasksCollection(), taskWithTimestamp)
-  return docRef.id
+export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'postedBy' | 'status'>, user: { uid: string, displayName: string | null }): Promise<Task> => {
+  const tasksCollection = collection(getDb(), 'tasks')
+  const newTask = {
+    ...task,
+    postedBy: user.displayName || 'Anonymous',
+    postedById: user.uid,
+    createdAt: serverTimestamp(),
+    status: 'available'
+  }
+  console.log("Adding new task to Firestore:", newTask)
+  const docRef = await addDoc(tasksCollection, newTask)
+  console.log("New task added with ID:", docRef.id)
+  const createdTask = await getTask(docRef.id)
+  if (!createdTask) {
+    throw new Error("Failed to retrieve created task")
+  }
+  return createdTask
 }
 
 export const updateTask = async (id: string, task: Partial<Task>): Promise<void> => {
@@ -47,7 +69,12 @@ export const getTask = async (id: string): Promise<Task | null> => {
   const taskDoc = doc(getDb(), 'tasks', id)
   const taskSnapshot = await getDoc(taskDoc)
   if (taskSnapshot.exists()) {
-    return { id: taskSnapshot.id, ...taskSnapshot.data() } as Task
+    const data = taskSnapshot.data()
+    return {
+      id: taskSnapshot.id,
+      ...data,
+      createdAt: data.createdAt?.toDate() || new Date()
+    } as Task
   }
   return null
 }
@@ -87,8 +114,11 @@ export const takeTask = async (userId: string, taskId: string, taskDuration: num
   })
 
   // Return the updated task
-  const updatedTask = await getDoc(taskRef)
-  return { id: updatedTask.id, ...updatedTask.data() } as Task
+  const updatedTask = await getTask(taskId)
+  if (!updatedTask) {
+    throw new Error("Failed to retrieve updated task")
+  }
+  return updatedTask
 }
 
 export const getUserTasks = async (userId: string): Promise<Task[]> => {

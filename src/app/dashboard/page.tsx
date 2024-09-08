@@ -15,7 +15,7 @@ import { useAuth } from '@/AuthContext'
 export default function Dashboard() {
   const [timeCredits, setTimeCredits] = useState(0)
   const [tasks, setTasks] = useState<Task[]>([])
-  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'createdAt' | 'postedBy' | 'status'>>({ title: '', description: '', duration: 0 })
+  const [newTask, setNewTask] = useState<Omit<Task, 'id' | 'createdAt' | 'postedBy' | 'status'>>({ title: '', description: '', duration: 0, postedById: '' })
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -33,19 +33,27 @@ export default function Dashboard() {
     }
   }, [user])
 
-  useEffect(() => {
-    fetchTasks()
-  }, [])
-
   const fetchTasks = async () => {
-    setIsLoading(true)
-    try {
-      const fetchedTasks = await getTasks()
-      setTasks(fetchedTasks)
-    } finally {
-      setIsLoading(false)
+    if (user?.uid) {
+      setIsLoading(true)
+      try {
+        console.log("Fetching tasks for user:", user.uid)
+        const fetchedTasks = await getTasks(user.uid)
+        console.log("Fetched tasks:", fetchedTasks)
+        setTasks(fetchedTasks)
+      } catch (error) {
+        console.error("Error fetching tasks:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
+
+  useEffect(() => {
+    if (user?.uid) {
+      fetchTasks()
+    }
+  }, [user])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -57,17 +65,26 @@ export default function Dashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user) return
     setIsLoading(true)
     try {
       if (editingTask) {
         await updateTask(editingTask.id, newTask)
       } else {
-        await createTask({ ...newTask, postedBy: user?.displayName || 'Anonymous' })
+        console.log("Creating task with:", newTask, user.uid)
+        await createTask({ ...newTask, postedById: user.uid }, { uid: user.uid, displayName: user.displayName })
       }
-      setNewTask({ title: '', description: '', duration: 0 })
+      setNewTask({ title: '', description: '', duration: 0, postedById: '' })
       setEditingTask(null)
       setIsDialogOpen(false)
       await fetchTasks()
+    } catch (error) {
+      console.error("Error creating/updating task:", error)
+      if (error instanceof Error) {
+        alert(`An error occurred: ${error.message}`)
+      } else {
+        alert("An unknown error occurred while saving the task. Please try again.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -75,7 +92,7 @@ export default function Dashboard() {
 
   const handleEdit = (task: Task) => {
     setEditingTask(task)
-    setNewTask({ title: task.title, description: task.description, duration: task.duration })
+    setNewTask({ title: task.title, description: task.description, duration: task.duration, postedById: task.postedById })
     setIsDialogOpen(true)
   }
 
@@ -96,6 +113,9 @@ export default function Dashboard() {
     return <CheckSquare className="h-5 w-5 mr-2 text-teal-500" />
   }
 
+  console.log("Current user:", user)
+  console.log("Current tasks:", tasks)
+
   return (
     <div className="container mx-auto pt-20 px-4">
       <header className="flex justify-between items-center mb-8">
@@ -111,7 +131,7 @@ export default function Dashboard() {
 
       <div className="bg-blue-100 p-4 rounded-lg mb-8">
         <h2 className="text-xl font-semibold mb-2">How Time Credits Work</h2>
-        <p>You start with 30 minutes of credit. When you take a task, credits are deducted. After completing a task, you earn the task&apos;s duration in credits. If you finish early, you keep the difference!</p>
+        <p>You start with 30 minutes of credit. When you take a task, credits are deducted. After completing a task, you earn the task's duration in credits. If you finish early, you keep the difference!</p>
       </div>
 
       <Card className="mb-8">
